@@ -1,0 +1,12 @@
+torchvision
+torchsde
+einops
+safetensors>=0.4.2
+pyyaml
+Pillow
+scipy
+tqdm
+psutil
+transformers>=4.28.1
+spandrel
+sentencepiece

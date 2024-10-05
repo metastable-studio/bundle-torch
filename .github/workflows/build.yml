@@ -1,0 +1,294 @@
+name: Build
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build-linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        build:
+          - arch: 'x64'
+            type: 'cuda'
+            pip_args: ''
+          - arch: 'x64'
+            type: 'cpu'
+            pip_args: '--extra-index-url https://download.pytorch.org/whl/cpu'
+          - arch: 'x64'
+            type: 'rocm'
+            pip_args: ''
+    runs-on: ubuntu-latest
+    env:
+      artifact_name: linux-${{ matrix.build.arch }}-${{ matrix.build.type }}.tar.br
+      python_url: 'https://github.com/indygreg/python-build-standalone/releases/download/20241002/cpython-3.11.10+20241002-x86_64_v3-unknown-linux-gnu-install_only_stripped.tar.gz'
+      pip_args: ${{ matrix.build.pip_args }} -r requirements.${{ matrix.build.type }}.txt
+    steps:
+      - name: Remove unnecessary files
+        run: |
+          sudo rm -rf \
+            "$AGENT_TOOLSDIRECTORY" \
+            /opt/google/chrome \
+            /opt/microsoft/msedge \
+            /opt/microsoft/powershell \
+            /opt/pipx \
+            /opt/ghc \
+            /opt/hostedtoolcache/CodeQL \
+            /usr/lib/mono \
+            /usr/local/julia* \
+            /usr/local/lib/android \
+            /usr/local/share/chromium \
+            /usr/local/share/powershell \
+            /usr/share/dotnet \
+            /usr/share/swift
+          sudo docker image prune --all --force
+
+      - uses: actions/checkout@v4
+
+      - name: Cache Python Download
+        id: cache-python
+        uses: actions/cache@v4
+        with:
+          path: python.tar.gz
+          key: ${{ runner.os }}-python
+
+      - name: Download Python
+        if: steps.cache-python.outputs.cache-hit != 'true'
+        run: curl -L -o python.tar.gz ${{ env.python_url }}
+
+      - name: Cache Pip Packages
+        uses: actions/cache@v4
+        id: cache-pip-packages
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-${{ matrix.build.type }}-pip-cache
+
+      - name: Extract Python
+        run: tar -xzf python.tar.gz
+
+      - name: Install packages
+        run: ./python/bin/python -m pip install --no-compile ${{ env.pip_args }}
+
+      - name: Clean up
+        run: |
+          rm -rf python/lib/python3.11/site-packages/torch/test
+          rm -rf python/lib/python3.11/site-packages/torch/bin/test_*
+          rm -rf python/lib/python3.11/site-packages/torch/include
+          rm -rf python/include
+          rm -rf python/share
+          find python/ -type d -name "tests" -exec rm -rf {} +
+
+      - name: Strip (CUDA)
+        run: |
+          strip -s python/lib/python3.11/site-packages/triton/_C/libtriton.so
+        if: matrix.build.type == 'cuda'
+
+      - name: Build artifact
+        run: cd python && tar -cf - * | brotli -6 > /tmp/${{ env.artifact_name }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.artifact_name }}
+          path: /tmp/${{ env.artifact_name }}
+          compression-level: 0
+
+  build-windows:
+    strategy:
+      fail-fast: false
+      matrix:
+        build:
+          - arch: 'x64'
+            type: 'cuda'
+            pip_args: ''
+          - arch: 'x64'
+            type: 'directml'
+            pip_args: '--pre'
+          - arch: 'x64'
+            type: 'cpu'
+            pip_args: ''
+    runs-on: windows-latest
+    env:
+      artifact_name: win32-${{ matrix.build.arch }}-${{ matrix.build.type }}.tar.br
+      python_url: 'https://github.com/indygreg/python-build-standalone/releases/download/20241002/cpython-3.11.10+20241002-i686-pc-windows-msvc-install_only_stripped.tar.gz'
+      pip_args: ${{ matrix.build.pip_args }} -r requirements.${{ matrix.build.type }}.txt
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Python Download
+        id: cache-python
+        uses: actions/cache@v4
+        with:
+          path: python.tar.gz
+          key: ${{ runner.os }}-python
+
+      - name: Download Python
+        if: steps.cache-python.outputs.cache-hit != 'true'
+        run: curl -L -o python.tar.gz ${{ env.python_url }}
+
+      - name: Cache Pip Packages
+        uses: actions/cache@v4
+        id: cache-pip-packages
+        with:
+          path: ~\AppData\Local\pip\cache
+          key: ${{ runner.os }}-${{ matrix.build.type }}-pip-cache
+
+      - name: Extract Python
+        run: tar -xzf python.tar.gz
+
+      - name: Install packages
+        run: .\python\python.exe -m pip install --no-compile ${{ env.pip_args }}
+
+      - name: Clean up
+        run: |
+          rm -r -fo python/Lib/site-packages/torch/include
+          rm -r -fo python/include
+          rm -r -fo python/share
+          Remove-Item 'python\*' -Recurse -Include *.pdb
+          Remove-Item 'python\*' -Recurse -Include *.lib
+
+      - name: Build artifact
+        run: cd python && tar -cf - * | brotli -6 > C:\WINDOWS\Temp\${{ env.artifact_name }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.artifact_name }}
+          path: C:\WINDOWS\Temp\${{ env.artifact_name }}
+          compression-level: 0
+
+  build-mac-arm:
+    strategy:
+      fail-fast: false
+      matrix:
+        build:
+          - arch: 'arm64'
+            type: 'cpu'
+    runs-on: macos-14
+    env:
+      artifact_name: darwin-${{ matrix.build.arch }}-${{ matrix.build.type }}.tar.br
+      python_url: 'https://github.com/indygreg/python-build-standalone/releases/download/20241002/cpython-3.11.10+20241002-aarch64-apple-darwin-install_only_stripped.tar.gz'
+      pip_args: -r requirements.${{ matrix.build.type }}.txt
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Python Download
+        id: cache-python
+        uses: actions/cache@v4
+        with:
+          path: python.tar.gz
+          key: ${{ runner.os }}-python
+
+      - name: Download Python
+        if: steps.cache-python.outputs.cache-hit != 'true'
+        run: curl -L -o python.tar.gz ${{ env.python_url }}
+
+      - name: Cache Pip Packages
+        uses: actions/cache@v4
+        id: cache-pip-packages
+        with:
+          path: ~/Library/Caches/pip
+          key: ${{ runner.os }}-${{ matrix.build.type }}-pip-cache
+
+      - name: Extract Python
+        run: tar -xzf python.tar.gz
+
+      - name: Install packages
+        run: ./python/bin/python -m pip install --no-compile ${{ env.pip_args }}
+
+      - name: Clean up
+        run: |
+          rm -rf python/lib/python3.11/site-packages/torch/include
+          rm -rf python/include
+          rm -rf python/share
+          find python/ -type d -name "tests" -exec rm -rf {} +
+
+      - name: Build artifact
+        run: cd python && tar -cf - * | brotli -6 > /tmp/${{ env.artifact_name }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.artifact_name }}
+          path: /tmp/${{ env.artifact_name }}
+          compression-level: 0
+
+  build-mac-x86:
+    strategy:
+      fail-fast: false
+      matrix:
+        build:
+          - arch: 'x64'
+            type: 'cpu'
+    runs-on: macos-13
+    env:
+      artifact_name: darwin-${{ matrix.build.arch }}-${{ matrix.build.type }}.tar.br
+      python_url: 'https://github.com/indygreg/python-build-standalone/releases/download/20241002/cpython-3.11.10+20241002-x86_64-apple-darwin-install_only_stripped.tar.gz'
+      pip_args: -r requirements.${{ matrix.build.type }}.txt
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Python Download
+        id: cache-python
+        uses: actions/cache@v4
+        with:
+          path: python.tar.gz
+          key: ${{ runner.os }}-python
+
+      - name: Download Python
+        if: steps.cache-python.outputs.cache-hit != 'true'
+        run: curl -L -o python.tar.gz ${{ env.python_url }}
+
+      - name: Cache Pip Packages
+        uses: actions/cache@v4
+        id: cache-pip-packages
+        with:
+          path: ~/Library/Caches/pip
+          key: ${{ runner.os }}-${{ matrix.build.type }}-pip-cache
+
+      - name: Extract Python
+        run: tar -xzf python.tar.gz
+
+      - name: Install packages
+        run: ./python/bin/python -m pip install --no-compile ${{ env.pip_args }}
+
+      - name: Clean up
+        run: |
+          rm -rf python/lib/python3.11/site-packages/torch/include
+          rm -rf python/include
+          rm -rf python/share
+          find python/ -type d -name "tests" -exec rm -rf {} +
+
+      - name: Build artifact
+        run: cd python && tar -cf - * | brotli -6 > /tmp/${{ env.artifact_name }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.artifact_name }}
+          path: /tmp/${{ env.artifact_name }}
+          compression-level: 0
+
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    needs:
+      - build-linux
+      - build-windows
+      - build-mac-arm
+      - build-mac-x86
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - run: 'for filename in ./*.br; do split -d -b 2000000000 "$filename" "$filename."; rm "$filename"; done'
+
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: '*.br.*'
