@@ -76,7 +76,6 @@ jobs:
           rm -rf python/lib/python3.11/site-packages/torch/test
           rm -rf python/lib/python3.11/site-packages/torch/bin/test_*
           rm -rf python/lib/python3.11/site-packages/torch/include
-          rm -rf python/include
           rm -rf python/share
           find python/ -type d -name "tests" -exec rm -rf {} +
           find python/ -type d -name "__pycache__" -exec rm -rf {} +
@@ -147,7 +146,6 @@ jobs:
       - name: Clean up
         run: |
           rm -r -fo python/Lib/site-packages/torch/include
-          rm -r -fo python/include
           rm -r -fo python/share
           Remove-Item 'python\*' -Recurse -Include *.pdb
           Remove-Item 'python\*' -Recurse -Include *.lib
@@ -207,7 +205,6 @@ jobs:
       - name: Clean up
         run: |
           rm -rf python/lib/python3.11/site-packages/torch/include
-          rm -rf python/include
           rm -rf python/share
           find python/ -type d -name "tests" -exec rm -rf {} +
           find python/ -type d -name "__pycache__" -exec rm -rf {} +
@@ -266,7 +263,6 @@ jobs:
       - name: Clean up
         run: |
           rm -rf python/lib/python3.11/site-packages/torch/include
-          rm -rf python/include
           rm -rf python/share
           find python/ -type d -name "tests" -exec rm -rf {} +
           find python/ -type d -name "__pycache__" -exec rm -rf {} +
