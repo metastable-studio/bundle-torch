@@ -119,7 +119,6 @@ jobs:
       artifact_name: win32-${{ matrix.build.arch }}-${{ matrix.build.type }}.tar.br
       python_url: 'https://github.com/indygreg/python-build-standalone/releases/download/20241016/cpython-3.11.10+20241016-x86_64-pc-windows-msvc-shared-install_only_stripped.tar.gz'
       pip_args: ${{ matrix.build.pip_args }} -r requirements.${{ matrix.build.type }}.txt
-      zluda_url: 'https://github.com/lshqqytiger/ZLUDA/releases/download/rel.c0804ca624963aab420cb418412b1c7fbae3454b/ZLUDA-windows-rocm5-amd64.zip'
     steps:
       - uses: actions/checkout@v4
 
@@ -146,15 +145,6 @@ jobs:
 
       - name: Install packages
         run: .\python\python.exe -m pip install --no-compile ${{ env.pip_args }}
-
-      - name: Patch for ZLUDA
-        if: matrix.build.type == 'zluda'
-        run: |
-          curl -L -o zluda.zip ${{ env.zluda_url }}
-          unzip zluda.zip
-          Copy-Item -Force zluda/cublas.dll python/Lib/site-packages/torch/lib/cublas64_11.dll
-          Copy-Item -Force zluda/cusparse.dll python/Lib/site-packages/torch/lib/cusparse64_11.dll
-          Copy-Item -Force zluda/nvrtc.dll python/Lib/site-packages/torch/lib/nvrtc64_112_0.dll
 
       - name: Clean up
         run: |
@@ -306,10 +296,20 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
+          path: artifacts/
           merge-multiple: true
 
-      - run: 'for filename in ./*.br; do split -d -b 2000000000 "$filename" "$filename."; rm "$filename"; done'
+      - name: Upload artifacts to S3 bucket
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
+        run: |
+          aws s3 cp ./artifacts s3://${{ vars.S3_BUCKET }}/${{ vars.S3_PREFIX }}/${{ github.ref_name }}/ --recursive --endpoint-url ${{ secrets.S3_ENDPOINT }}
 
-      - uses: ncipollo/release-action@v1
-        with:
-          artifacts: '*.br.*'
+      - name: Upload version file to S3 bucket
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
+        run: |
+          jq -n --arg version '${{ github.ref_name }}' '$ARGS.named' > /tmp/version.json
+          aws s3 cp /tmp/version.json s3://${{ vars.S3_BUCKET }}/${{ vars.S3_PREFIX }}/version.json --endpoint-url ${{ secrets.S3_ENDPOINT }}
