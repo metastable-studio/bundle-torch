@@ -22,7 +22,7 @@ jobs:
             pip_args: ''
     runs-on: ubuntu-latest
     env:
-      artifact_name: linux-${{ matrix.build.arch }}-${{ matrix.build.type }}.tar.br
+      artifact_name: linux-${{ matrix.build.arch }}-${{ matrix.build.type }}.tar.zst
       python_url: 'https://github.com/indygreg/python-build-standalone/releases/download/20241016/cpython-3.11.10+20241016-x86_64_v3-unknown-linux-gnu-install_only_stripped.tar.gz'
       pip_args: ${{ matrix.build.pip_args }} -r requirements.${{ matrix.build.type }}.txt
     steps:
@@ -88,7 +88,7 @@ jobs:
       - name: Build artifact
         run: |
           cd python
-          tar -cf - * | brotli -6 > /tmp/${{ env.artifact_name }}
+          tar -cf - * | zstd -9 -T0 > /tmp/${{ env.artifact_name }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -116,7 +116,7 @@ jobs:
             pip_args: ''
     runs-on: windows-latest
     env:
-      artifact_name: win32-${{ matrix.build.arch }}-${{ matrix.build.type }}.tar.br
+      artifact_name: win32-${{ matrix.build.arch }}-${{ matrix.build.type }}.tar.zst
       python_url: 'https://github.com/indygreg/python-build-standalone/releases/download/20241016/cpython-3.11.10+20241016-x86_64-pc-windows-msvc-shared-install_only_stripped.tar.gz'
       pip_args: ${{ matrix.build.pip_args }} -r requirements.${{ matrix.build.type }}.txt
     steps:
@@ -157,7 +157,7 @@ jobs:
       - name: Build artifact
         run: |
           cd python
-          tar -cf - * | brotli -6 > C:\WINDOWS\Temp\${{ env.artifact_name }}
+          tar -cf - * | zstd -9 -T0 > C:\WINDOWS\Temp\${{ env.artifact_name }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -175,7 +175,7 @@ jobs:
             type: 'cpu'
     runs-on: macos-14
     env:
-      artifact_name: darwin-${{ matrix.build.arch }}-${{ matrix.build.type }}.tar.br
+      artifact_name: darwin-${{ matrix.build.arch }}-${{ matrix.build.type }}.tar.zst
       python_url: 'https://github.com/indygreg/python-build-standalone/releases/download/20241016/cpython-3.11.10+20241016-aarch64-apple-darwin-install_only_stripped.tar.gz'
       pip_args: -r requirements.${{ matrix.build.type }}.txt
     steps:
@@ -215,7 +215,7 @@ jobs:
       - name: Build artifact
         run: |
           cd python
-          tar -cf - * | brotli -6 > /tmp/${{ env.artifact_name }}
+          tar -cf - * | zstd -9 -T2 > /tmp/${{ env.artifact_name }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -233,7 +233,7 @@ jobs:
             type: 'cpu'
     runs-on: macos-13
     env:
-      artifact_name: darwin-${{ matrix.build.arch }}-${{ matrix.build.type }}.tar.br
+      artifact_name: darwin-${{ matrix.build.arch }}-${{ matrix.build.type }}.tar.zst
       python_url: 'https://github.com/indygreg/python-build-standalone/releases/download/20241016/cpython-3.11.10+20241016-x86_64-apple-darwin-install_only_stripped.tar.gz'
       pip_args: -r requirements.${{ matrix.build.type }}.txt
     steps:
@@ -273,7 +273,7 @@ jobs:
       - name: Build artifact
         run: |
           cd python
-          tar -cf - * | brotli -6 > /tmp/${{ env.artifact_name }}
+          tar -cf - * | zstd -9 -T2 > /tmp/${{ env.artifact_name }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
