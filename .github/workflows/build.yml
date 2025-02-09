@@ -55,7 +55,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: python.tar.gz
-          key: ${{ runner.os }}-python
+          key: ${{ env.python_url }}
 
       - name: Download Python
         if: steps.cache-python.outputs.cache-hit != 'true'
@@ -133,7 +133,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: python.tar.gz
-          key: ${{ runner.os }}-python
+          key: ${{ env.python_url }}
 
       - name: Download Python
         if: steps.cache-python.outputs.cache-hit != 'true'
@@ -192,7 +192,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: python.tar.gz
-          key: ${{ runner.os }}-python
+          key: ${{ env.python_url }}
 
       - name: Download Python
         if: steps.cache-python.outputs.cache-hit != 'true'
@@ -237,7 +237,7 @@ jobs:
         build:
           - arch: 'x64'
             type: 'cpu'
-    runs-on: macos-13
+    runs-on: macos-14-large
     env:
       artifact_name: darwin-${{ matrix.build.arch }}-${{ matrix.build.type }}.tar.zst
       python_url: 'https://github.com/astral-sh/python-build-standalone/releases/download/20250205/cpython-3.12.9+20250205-x86_64-apple-darwin-install_only_stripped.tar.gz'
@@ -250,7 +250,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: python.tar.gz
-          key: ${{ runner.os }}-python
+          key: ${{ env.python_url }}
 
       - name: Download Python
         if: steps.cache-python.outputs.cache-hit != 'true'
