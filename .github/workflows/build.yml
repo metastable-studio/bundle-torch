@@ -76,16 +76,16 @@ jobs:
 
       - name: Clean up
         run: |
-          rm -rf python/lib/python3.11/site-packages/torch/test
-          rm -rf python/lib/python3.11/site-packages/torch/bin/test_*
-          rm -rf python/lib/python3.11/site-packages/torch/include
+          rm -rf python/lib/python3.12/site-packages/torch/test
+          rm -rf python/lib/python3.12/site-packages/torch/bin/test_*
+          rm -rf python/lib/python3.12/site-packages/torch/include
           rm -rf python/share
           find python/ -type d -name "tests" -exec rm -rf {} +
           find python/ -type d -name "__pycache__" -exec rm -rf {} +
 
       - name: Strip (CUDA)
         run: |
-          strip -s python/lib/python3.11/site-packages/triton/_C/libtriton.so
+          strip -s python/lib/python3.12/site-packages/triton/_C/libtriton.so
         if: matrix.build.type == 'cuda'
 
       - name: Build artifact
@@ -213,7 +213,7 @@ jobs:
 
       - name: Clean up
         run: |
-          rm -rf python/lib/python3.11/site-packages/torch/include
+          rm -rf python/lib/python3.12/site-packages/torch/include
           rm -rf python/share
           find python/ -type d -name "tests" -exec rm -rf {} +
           find python/ -type d -name "__pycache__" -exec rm -rf {} +
@@ -271,7 +271,7 @@ jobs:
 
       - name: Clean up
         run: |
-          rm -rf python/lib/python3.11/site-packages/torch/include
+          rm -rf python/lib/python3.12/site-packages/torch/include
           rm -rf python/share
           find python/ -type d -name "tests" -exec rm -rf {} +
           find python/ -type d -name "__pycache__" -exec rm -rf {} +
