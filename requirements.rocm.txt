@@ -1,4 +1,2 @@
 --extra-index-url https://download.pytorch.org/whl/rocm6.2.4
 -r requirements.txt
-torch
-torchvision

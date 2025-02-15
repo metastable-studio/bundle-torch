@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       artifact_name: linux-${{ matrix.build.arch }}-${{ matrix.build.type }}.tar.zst
-      python_url: 'https://github.com/astral-sh/python-build-standalone/releases/download/20250205/cpython-3.12.9+20250205-x86_64_v3-unknown-linux-gnu-install_only_stripped.tar.gz'
+      python_url: 'https://github.com/astral-sh/python-build-standalone/releases/download/20250212/cpython-3.12.9+20250212-x86_64_v3-unknown-linux-gnu-install_only_stripped.tar.gz'
       pip_args: ${{ matrix.build.pip_args }} -r requirements.${{ matrix.build.type }}.txt
     steps:
       - name: Remove unnecessary files
@@ -123,7 +123,7 @@ jobs:
     runs-on: windows-latest
     env:
       artifact_name: win32-${{ matrix.build.arch }}-${{ matrix.build.type }}.tar.zst
-      python_url: 'https://github.com/astral-sh/python-build-standalone/releases/download/20250205/cpython-3.11.11+20250205-x86_64-pc-windows-msvc-shared-install_only_stripped.tar.gz'
+      python_url: 'https://github.com/astral-sh/python-build-standalone/releases/download/20250212/cpython-3.11.11+20250212-x86_64-pc-windows-msvc-shared-install_only_stripped.tar.gz'
       pip_args: ${{ matrix.build.pip_args }} -r requirements.${{ matrix.build.type }}.txt
     steps:
       - uses: actions/checkout@v4
@@ -182,7 +182,7 @@ jobs:
     runs-on: macos-14
     env:
       artifact_name: darwin-${{ matrix.build.arch }}-${{ matrix.build.type }}.tar.zst
-      python_url: 'https://github.com/astral-sh/python-build-standalone/releases/download/20250205/cpython-3.12.9+20250205-aarch64-apple-darwin-install_only_stripped.tar.gz'
+      python_url: 'https://github.com/astral-sh/python-build-standalone/releases/download/20250212/cpython-3.12.9+20250212-aarch64-apple-darwin-install_only_stripped.tar.gz'
       pip_args: -r requirements.${{ matrix.build.type }}.txt
     steps:
       - uses: actions/checkout@v4
@@ -240,7 +240,7 @@ jobs:
     runs-on: macos-14-large
     env:
       artifact_name: darwin-${{ matrix.build.arch }}-${{ matrix.build.type }}.tar.zst
-      python_url: 'https://github.com/astral-sh/python-build-standalone/releases/download/20250205/cpython-3.12.9+20250205-x86_64-apple-darwin-install_only_stripped.tar.gz'
+      python_url: 'https://github.com/astral-sh/python-build-standalone/releases/download/20250212/cpython-3.12.9+20250212-x86_64-apple-darwin-install_only_stripped.tar.gz'
       pip_args: -r requirements.${{ matrix.build.type }}.txt
     steps:
       - uses: actions/checkout@v4

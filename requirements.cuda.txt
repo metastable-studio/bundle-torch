@@ -1,4 +1,2 @@
 --extra-index-url https://download.pytorch.org/whl/cu126
 -r requirements.txt
-torch
-torchvision

@@ -1,3 +1,5 @@
+torch
+torchvision
 torchsde
 einops
 safetensors>=0.4.2
